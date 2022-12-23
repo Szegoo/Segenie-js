@@ -19,7 +19,7 @@
   "dependencies": {
     "@dfinity/agent": "^0.15.1",
     "@dfinity/candid": "^0.15.1",
-    "axios": "^1.2.1",
+    "@dfinity/principal": "^0.15.1",
     "isomorphic-fetch": "^3.0.0",
     "prettier": "^2.8.1"
   },

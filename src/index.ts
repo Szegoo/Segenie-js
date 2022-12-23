@@ -1,30 +1,35 @@
+const { Principal } = require("@dfinity/principal");
 const { HttpAgent, Actor } = require("@dfinity/agent");
 const { IDL } = require("@dfinity/candid");
-const { cbor } = require("@dfinity/agent");
-const {idlFactory} = require("./idlFactory.js");
-require('isomorphic-fetch');
+const { idlFactory } = require("./idlFactory.js");
+require("isomorphic-fetch");
 
-console.log(idlFactory);
-const mockResponse = {
-  status: 'replied',
-  reply: { arg: new Uint8Array([]) },
-};
+const CANISTER_ID = "ooyw6-eqaaa-aaaap-qavrq-cai";
 
-const httpAgent = new HttpAgent({
-  host: "https://ic0.app",
-  disableNonce: true,
-});
+class SegenieAgent {
+  private actor: typeof Actor;
 
-const canisterId = "ooyw6-eqaaa-aaaap-qavrq-cai";
+  constructor(host: String) {
+    const httpAgent = new HttpAgent({
+      host,
+      disableNonce: true,
+    });
 
-const actor = Actor.createActor(idlFactory, { canisterId, agent: httpAgent });
+    this.actor = Actor.createActor(idlFactory, {
+      canisterId: CANISTER_ID,
+      agent: httpAgent,
+    });
+  }
 
-console.log(actor);
-
-async function getPortal(id: number): Promise<any> { 
-  const response = await actor.get_portal(id);
-  console.log(response);
-  return response;
+  public async getPortalsOfUser(user: String): Promise<any> {
+    // TODO - update this to get_portals_of_user
+    let principal = Principal.from(user);
+    const response = await this.actor.get_portals_of_creator(principal);
+    console.log(response);
+    return response;
+  }
 }
 
-getPortal(1);
+// TODO - move this to an actual test file.
+const sa = new SegenieAgent("https://ic0.app");
+sa.getPortalsOfUser("2vxsx-fae");
