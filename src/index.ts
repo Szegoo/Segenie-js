@@ -1,26 +1,69 @@
 const axios = require("axios");
+// @ts-ignore
+import borc from 'borc';
+import * as cbor from 'simple-cbor';
+import { CborEncoder, CborValue, SelfDescribeCborSerializer } from 'simple-cbor';
 
-/*
-{
-  request_type: 'call',
-  nonce: Uint8Array(8) [
-    0, 1, 2, 3,
-    4, 5, 6, 7
-  ],
-  canister_id: '2chl6-4hpzw-vqaaa-aaaaa-c',
-  method_name: 'greet',
-  arg: Uint8Array(0) [],
-  sender: Principal { _arr: Uint8Array(1) [ 4 ], _isPrincipal: true }
+////////////// CUSTOM SERIALIZE
+class PrincipalEncoder implements CborEncoder<Principal> {
+  public get name() {
+    return 'Principal';
+  }
+
+  public get priority() {
+    return 0;
+  }
+
+  public match(value: any): boolean {
+    return value && value._isPrincipal === true;
+  }
+
+  public encode(v: Principal): cbor.CborValue {
+    return cbor.value.bytes(v._arr);
+  }
 }
-*/
 
-const icp = "https://ic0.app/";
-console.log(new Uint8Array(0));
+class BufferEncoder implements CborEncoder<ArrayBuffer> {
+  public get name() {
+    return 'Buffer';
+  }
 
-const ANONYMOUS_SUFFIX = 4;
-const anonymous = new Uint8Array([ANONYMOUS_SUFFIX]);
-console.log(anonymous);
-//const backendCanisterId = "00000000000000010101"
+  public get priority() {
+    return 1;
+  }
+
+  public match(value: any): boolean {
+    return value instanceof ArrayBuffer || ArrayBuffer.isView(value);
+  }
+
+  public encode(v: ArrayBuffer): cbor.CborValue {
+    return cbor.value.bytes(new Uint8Array(v));
+  }
+}
+
+const serializer = SelfDescribeCborSerializer.withDefaultEncoders(true);
+serializer.addEncoder(new PrincipalEncoder());
+serializer.addEncoder(new BufferEncoder());
+
+export enum CborTag {
+  Uint64LittleEndian = 71,
+  Semantic = 55799,
+}
+
+/**
+ * Encode a JavaScript value into CBOR.
+ */
+export function encode(value: any): ArrayBuffer {
+  return serializer.serialize(value);
+}
+
+////////////// END
+
+interface Principal {
+  _arr: Uint8Array,
+  _isPrincipal: boolean,
+}
+
 const backendCanisterId = "ooyw6-eqaaa-aaaap-qavrq-cai";
 
 const get_portals = `https://ic0.app/api/v2/canister/${backendCanisterId}/query`;
@@ -30,43 +73,41 @@ const canisterId = {
   _isPrincipal: true,
 };
 
+const principal: Principal = { _arr: new Uint8Array([4]), _isPrincipal: true };
+
 const body = {
   request_type: "query",
-  canister_id: {
-    _arr: new Uint8Array([0, 0, 0, 0, 1, 240, 5, 99, 1, 1]),
-    _isPrincipal: true,
-  },
+  canister_id: backendCanisterId,
   method_name: "get_portal",
   arg: new Uint8Array(0),
-  sender: { _arr: new Uint8Array([4]), _isPrincipal: true },
-  ingress_expiry: { _value: 1240000000000 },
+  sender: principal,
+  ingress_expiry: { _value: 1260000000000 },
+  nonce: new Uint8Array([
+    0, 1, 2, 3,
+    4, 5, 6, 7
+  ])
 };
 
-/*axios.post(icp, { 
-  body: {
-    request_type: "query",
-    canister_id: canisterId,
-    method_name: "get_portal",
-    arg: new Uint8Array(0),
-    ingress_expiry: getNanoSecTime(),
-    sender: { _arr: new Uint8Array(1) [ 4 ], _isPrincipal: true } 
-  }
-}).then((response: any) => {
-  //console.log(response.status);
-})*/
+const encodedBody = encode(body);
+
+const request = 
+{
+  reactNative: { __nativeResponseType: 'base64' },
+  method: 'POST',
+  headers: { 'Content-Type': 'application/cbor' },
+  body: encodedBody,
+}
+
+console.dir(request, {maxArrayLength: null});
+
+console.log("Request: ");
+console.log(request);
 
 axios
-  .post(get_portals, {
-    headers: {
-      "content-type": "application/cbor",
-    },
-    body: body,
-  })
+  .post(get_portals, request)
   .then((response: any) => {
-    console.log(response.status);
+    //console.log(response.status.statusCode);
   });
-
-console.log("Hello");
 
 function getNanoSecTime() {
   var hrTime = process.hrtime();
