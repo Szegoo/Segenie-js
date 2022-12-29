@@ -16,6 +16,8 @@ module.exports.idlFactory = ({ IDL }) => {
     get_portal: IDL.Func([IDL.Nat], [IDL.Opt(Portal)], []),
     get_portals_of_caller: IDL.Func([], [IDL.Vec(Portal)], []),
     get_portals_of_creator: IDL.Func([IDL.Principal], [IDL.Vec(Portal)], []),
+    get_portals_of_user: IDL.Func([IDL.Principal], [IDL.Vec(Portal)], []),
+    mint_portal: IDL.Func([IDL.Nat, IDL.Principal], [IDL.Text], []),
     set_creator_metadata: IDL.Func([IDL.Text], [IDL.Text], []),
     update_portal_metadata: IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Opt(IDL.Text)],
@@ -23,4 +25,7 @@ module.exports.idlFactory = ({ IDL }) => {
       [],
     ),
   });
+};
+module.exports.init = ({ IDL }) => {
+  return [];
 };

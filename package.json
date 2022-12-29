@@ -7,9 +7,12 @@
     "dev": "npx ts-node ./src/index",
     "prettier": "prettier --config ./.prettierrc --write \"**/*.{json,md,ts,js}\"",
     "lint": "eslint . --ext .ts",
-    "dist": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dist": "tsc --outDir dist",
+    "test": "npx jest ./src/agent.test.ts"
   },
+  "files": [
+    "./dist/*"
+  ],
   "keywords": [
     "segenie",
     "ic"
@@ -27,6 +30,7 @@
     "@types/node": "^18.11.17",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
-    "eslint": "^8.30.0"
+    "eslint": "^8.30.0",
+    "jest": "^29.3.1"
   }
 }
