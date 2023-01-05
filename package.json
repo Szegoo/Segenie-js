@@ -11,12 +11,20 @@
     "test": "npx jest ./src/agent.test.ts"
   },
   "files": [
-    "./dist/*"
+    "./src/index.js"
   ],
   "keywords": [
     "segenie",
     "ic"
   ],
+  "exports": {
+    "import": {
+      "default": "./src/index.js"
+    },
+    "require": {
+      "default": "./src/index.js"
+    }
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
